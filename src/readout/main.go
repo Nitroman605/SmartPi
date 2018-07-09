@@ -124,12 +124,12 @@ func pollSmartPi(config *smartpi.Config, device *i2c.Device) {
 		if config.MQTTenabled {
 			publishMQTTReadouts(config, mqttclient, &readouts)
 		}
+
+		if config.SharedFileEnabled {
+			writeSharedFile(config, &readouts, wattHourBalanced5s)
+		}
 		// Every 5 seconds
 		if i%5 == 0 {
-			if config.SharedFileEnabled {
-				writeSharedFile(config, &readouts, wattHourBalanced5s)
-			}
-
 			// Publish readouts to MQTT.
 			wattHourBalanced5s = 0
 		}
