@@ -121,13 +121,12 @@ func pollSmartPi(config *smartpi.Config, device *i2c.Device) {
 
 		// Update metrics endpoint.
 		updatePrometheusMetrics(&readouts)
-
+		if config.MQTTenabled {
+			publishMQTTReadouts(config, mqttclient, &readouts)
+		}
 		// Every 5 seconds
 		if i%5 == 0 {
 			// Publish readouts to MQTT.
-			if config.MQTTenabled {
-				publishMQTTReadouts(config, mqttclient, &readouts)
-			}
 
 			if config.SharedFileEnabled {
 				writeSharedFile(config, &readouts, wattHourBalanced5s)
