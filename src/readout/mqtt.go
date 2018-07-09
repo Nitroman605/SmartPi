@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/Nitroman605/SmartPi/src/smartpi"
@@ -34,6 +35,7 @@ func newMQTTClient(c *smartpi.Config) (mqttclient MQTT.Client) {
 }
 
 func publishMQTT(m MQTT.Client, status *bool, t string, v string) bool {
+	fmt.Printf("Sending MQTT NOW !")
 	if *status {
 		log.Debugf("  -> ", t, ":", v)
 		token := m.Publish(t, 1, false, v)

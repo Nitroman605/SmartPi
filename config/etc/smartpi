@@ -58,7 +58,7 @@ docroot="../public_html"
 [mqtt]
 mqtt_enabled=true
 mqtt_broker_url="mqtt.flespi.io"
-mqtt_broker_port="80"
+mqtt_broker_port="1883"
 mqtt_username="FH4RR7dTu1AdFazGhKPBfytz7iXkLPgek8T16XIqM7rg7OMcorDrNUPK0CUzhZDr"
 mqtt_password=""
 mqtt_topic="main"
