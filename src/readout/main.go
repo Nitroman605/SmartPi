@@ -75,7 +75,7 @@ func makeReadout() (r smartpi.ADE7878Readout) {
 
 func pollSmartPi(config *smartpi.Config, device *i2c.Device) {
 	var mqttclient MQTT.Client
-	var consumed, produced, wattHourBalanced5s, consumedWattHourBalanced60s, producedWattHourBalanced60s float64
+	var consumed, produced, wattHourBalanced5s float64
 	var p smartpi.Phase
 
 	consumerCounterFile := filepath.Join(config.CounterDir, "consumecounter")
@@ -139,22 +139,10 @@ func pollSmartPi(config *smartpi.Config, device *i2c.Device) {
 
 			// balanced value
 			var wattHourBalanced60s float64
-			consumedWattHourBalanced60s = 0.0
-			producedWattHourBalanced60s = 0.0
 
 			for _, p = range smartpi.MainPhases {
 				wattHourBalanced60s += accumulator.WattHoursConsumed[p]
 				wattHourBalanced60s -= accumulator.WattHoursProduced[p]
-			}
-			if wattHourBalanced60s >= 0 {
-				consumedWattHourBalanced60s = wattHourBalanced60s
-			} else {
-				producedWattHourBalanced60s = wattHourBalanced60s
-			}
-
-			// Update SQLlite database.
-			if config.DatabaseEnabled {
-				updateSQLiteDatabase(config, accumulator, consumedWattHourBalanced60s, producedWattHourBalanced60s)
 			}
 
 			// Update persistent counter files.
@@ -245,8 +233,6 @@ func main() {
 	}
 
 	log.SetLevel(config.LogLevel)
-
-	smartpi.CheckDatabase(config.DatabaseDir)
 
 	listenAddress := config.MetricsListenAddress
 
