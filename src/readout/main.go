@@ -35,7 +35,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"smartpi"
+	"github.com/Nitroman605/SmartPi/src/smartpi"
 
 	log "github.com/Sirupsen/logrus"
 	"golang.org/x/exp/io/i2c"
@@ -206,7 +206,7 @@ func configWatcher(config *smartpi.Config) {
 	}()
 
 	log.Debug("init done 2")
-	err = watcher.Add("/etc/smartpi")
+	err = watcher.Add("../config/etc/smartpi")
 	if err != nil {
 		log.Fatal(err)
 	}
