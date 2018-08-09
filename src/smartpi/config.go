@@ -104,7 +104,7 @@ var err error
 
 func (p *Config) ReadParameterFromFile() {
 
-	cfg, err = ini.Load("../config/etc/smartpi")
+	cfg, err = ini.Load("./smartpi")
 	if err != nil {
 		panic(err)
 	}
@@ -296,7 +296,7 @@ func (p *Config) SaveParameterToFile() {
 	Checklog(err)
 	defer srcFile.Close()
 
-	destFile, err := os.Create("/etc/smartpi") // creates if file doesn't exist
+	destFile, err := os.Create("./smartpi") // creates if file doesn't exist
 	Checklog(err)
 	defer destFile.Close()
 

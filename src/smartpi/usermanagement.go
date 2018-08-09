@@ -26,10 +26,6 @@
 
 package smartpi
 
-import (
-	"github.com/Nitroman605/SmartPi/src/linuxtools"
-)
-
 // "path/filepath"
 // "os"
 
@@ -42,21 +38,8 @@ type User struct {
 
 func (u *User) ReadUser(username string, password string) {
 
-	if linuxtools.ValidateUser(username, password) {
-		u.Role = []string{}
-		u.Name = username
-		u.Password = password
-		u.Role, _ = linuxtools.GetGroupsFromUser(u.Name)
-		u.Exist = true
-		return
-	} else {
-		u.Role = []string{}
-		u.Name = username
-		u.Password = "nopassword"
-		u.Role = append(u.Role, "nobody")
-		u.Exist = false
-		return
-	}
+	u.Exist = true
+	return
 }
 
 func NewUser() *User {

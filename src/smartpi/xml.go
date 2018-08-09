@@ -32,8 +32,6 @@ package smartpi
 
 import (
 	"encoding/xml"
-	"math"
-	"reflect"
 	"time"
 )
 
@@ -82,27 +80,6 @@ func CreateXML(start time.Time, end time.Time) string {
 	}
 
 	// type serie []tChartSerie
-
-	tempValues := make([]float32, 22)
-	config := NewConfig()
-	data := ReadChartData(config.DatabaseDir, start, end)
-
-	for _, dataelement := range data {
-		ti := dataelement.Date
-
-		datav := reflect.ValueOf(dataelement).Elem()
-
-		for i := 1; i < datav.NumField(); i++ {
-			val := datav.Field(i).Interface().(float64)
-			if math.IsNaN(val) {
-				val = 0.0
-			}
-			tempValues[i-1] = float32(val)
-		}
-
-		valueSeries = append(valueSeries, tXmlValue{Date: ti.Format(config.CSVtimeformat), Current_1: tempValues[0], Current_2: tempValues[1], Current_3: tempValues[2], Current_4: tempValues[3], Voltage_1: tempValues[4], Voltage_2: tempValues[5], Voltage_3: tempValues[6], Power_1: tempValues[7], Power_2: tempValues[8], Power_3: tempValues[9], Cosphi_1: tempValues[10], Cosphi_2: tempValues[11], Cosphi_3: tempValues[12], Frequency_1: tempValues[13], Frequency_2: tempValues[14], Frequency_3: tempValues[15], Energy_pos_1: tempValues[16], Energy_pos_2: tempValues[17], Energy_pos_3: tempValues[18], Energy_neg_1: tempValues[19], Energy_neg_2: tempValues[20], Energy_neg_3: tempValues[21]})
-
-	}
 
 	if xmlstring, err := xml.MarshalIndent(dataset{valueSeries}, "", "    "); err == nil {
 		xmlstring = []byte(xml.Header + string(xmlstring))

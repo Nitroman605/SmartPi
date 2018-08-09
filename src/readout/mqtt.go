@@ -4,6 +4,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/Nitroman605/SmartPi/src/smartpi"
@@ -15,7 +16,7 @@ import (
 func newMQTTClient(c *smartpi.Config) (mqttclient MQTT.Client) {
 	log.Debugf("Connecting to MQTT broker at %s", (c.MQTTbroker + ":" + c.MQTTbrokerport))
 	//create a MQTTClientOptions struct setting the broker address, clientid, user and password
-	opts := MQTT.NewClientOptions().AddBroker("mqtt://" + c.MQTTbroker + ":" + c.MQTTbrokerport)
+	opts := MQTT.NewClientOptions().AddBroker("tcp://" + c.MQTTbroker + ":" + c.MQTTbrokerport)
 	opts.SetClientID("SmartPi-" + c.Name)
 	opts.SetUsername(c.MQTTuser)
 	opts.SetPassword(c.MQTTpass)
@@ -34,6 +35,7 @@ func newMQTTClient(c *smartpi.Config) (mqttclient MQTT.Client) {
 }
 
 func publishMQTT(m MQTT.Client, status *bool, t string, v string) bool {
+
 	if *status {
 		log.Debugf("  -> ", t, ":", v)
 		token := m.Publish(t, 1, false, v)
@@ -53,6 +55,15 @@ func publishMQTT(m MQTT.Client, status *bool, t string, v string) bool {
 func publishMQTTReadouts(c *smartpi.Config, mqttclient MQTT.Client, values *smartpi.ADE7878Readout) {
 	//[basetopic]/[node]/[keyname]
 	// Let's try to (re-)connect if MQTT connection was lost.
+	fmt.Printf("Current 1: %v \n", values.Current[1])
+	fmt.Printf("Current 2: %v \n", values.Current[2])
+	fmt.Printf("Current 3: %v \n", values.Current[3])
+	fmt.Printf("total Current : %v \n", (values.Current[1] + values.Current[2] + values.Current[3]))
+	fmt.Printf("ActiveWatt 1: %v \n", values.ActiveWatts[1])
+	fmt.Printf("ActiveWatt 2: %v \n", values.ActiveWatts[2])
+	fmt.Printf("ActiveWatt 3: %v \n", values.ActiveWatts[3])
+	fmt.Printf("total ActiveWatt : %v \n", (values.ActiveWatts[1] + values.ActiveWatts[2] + values.ActiveWatts[3]))
+	fmt.Printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n")
 	if !mqttclient.IsConnected() {
 		if mqtttoken := mqttclient.Connect(); mqtttoken.Wait() && mqtttoken.Error() != nil {
 			log.Debugf("Connecting to MQTT broker failed. %q", mqtttoken.Error())
@@ -60,7 +71,6 @@ func publishMQTTReadouts(c *smartpi.Config, mqttclient MQTT.Client, values *smar
 	}
 	if mqttclient.IsConnected() {
 		log.Debug("Publishing readoputs via MQTT...")
-
 		// Status is used to stop MQTT publication sequence in case of first error.
 		var status = true
 		jsonReadout, _ := json.Marshal(values)
