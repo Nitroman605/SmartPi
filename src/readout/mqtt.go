@@ -4,7 +4,6 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 
 	"github.com/Nitroman605/SmartPi/src/smartpi"
@@ -55,15 +54,17 @@ func publishMQTT(m MQTT.Client, status *bool, t string, v string) bool {
 func publishMQTTReadouts(c *smartpi.Config, mqttclient MQTT.Client, values *smartpi.ADE7878Readout) {
 	//[basetopic]/[node]/[keyname]
 	// Let's try to (re-)connect if MQTT connection was lost.
-	fmt.Printf("Current 1: %v \n", values.Current[1])
-	fmt.Printf("Current 2: %v \n", values.Current[2])
-	fmt.Printf("Current 3: %v \n", values.Current[3])
-	fmt.Printf("total Current : %v \n", (values.Current[1] + values.Current[2] + values.Current[3]))
-	fmt.Printf("ActiveWatt 1: %v \n", values.ActiveWatts[1])
-	fmt.Printf("ActiveWatt 2: %v \n", values.ActiveWatts[2])
-	fmt.Printf("ActiveWatt 3: %v \n", values.ActiveWatts[3])
-	fmt.Printf("total ActiveWatt : %v \n", (values.ActiveWatts[1] + values.ActiveWatts[2] + values.ActiveWatts[3]))
-	fmt.Printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n")
+	/*
+		fmt.Printf("Current 1: %v \n", values.Current[1])
+		fmt.Printf("Current 2: %v \n", values.Current[2])
+		fmt.Printf("Current 3: %v \n", values.Current[3])
+		fmt.Printf("total Current : %v \n", (values.Current[1] + values.Current[2] + values.Current[3]))
+		fmt.Printf("ActiveWatt 1: %v \n", values.ActiveWatts[1])
+		fmt.Printf("ActiveWatt 2: %v \n", values.ActiveWatts[2])
+		fmt.Printf("ActiveWatt 3: %v \n", values.ActiveWatts[3])
+		fmt.Printf("total ActiveWatt : %v \n", (values.ActiveWatts[1] + values.ActiveWatts[2] + values.ActiveWatts[3]))
+		fmt.Printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n")
+	*/
 	if !mqttclient.IsConnected() {
 		if mqtttoken := mqttclient.Connect(); mqtttoken.Wait() && mqtttoken.Error() != nil {
 			log.Debugf("Connecting to MQTT broker failed. %q", mqtttoken.Error())
