@@ -27,10 +27,15 @@
 package main
 
 import (
+	"bytes"
+	"encoding/csv"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"net/http"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/Nitroman605/SmartPi/src/smartpi"
@@ -41,7 +46,6 @@ import (
 	"github.com/fsnotify/fsnotify"
 
 	//import the Paho Go MQTT library
-	MQTT "github.com/eclipse/paho.mqtt.golang"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/version"
@@ -72,39 +76,69 @@ func makeReadout() (r smartpi.ADE7878Readout) {
 }
 
 func pollSmartPi(config *smartpi.Config, device *i2c.Device) {
-	var mqttclient MQTT.Client
+	//var mqttclient MQTT.Client
 	var p smartpi.Phase
 
-	if config.MQTTenabled {
+	/*if config.MQTTenabled {
 		mqttclient = newMQTTClient(config)
+	}*/
+
+	//i := 0
+
+	tick := time.Tick(1 * time.Millisecond)
+	now := time.Now()
+	currentHour := now.Hour()
+	file, err := os.OpenFile(strings.Join([]string{now.Format("2006-01-02h15"), ".csv"}, ""), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		log.Fatal(err)
 	}
-
+	defer file.Close()
+	csvWriter := csv.NewWriter(file)
+	csvWriter.Write([]string{"timestamp", "Current #1", "Current #2", "Current #3"})
 	i := 0
-
-	tick := time.Tick(time.Second)
-
 	for {
 		readouts := makeReadout()
 		// Restart the accumulator loop every 60 seconds.
-		if i > 59 {
+		/*if i > 59 {
 			i = 0
-		}
+		}*/
 
-		startTime := time.Now()
-		smartpi.ReadPhase(device, config, smartpi.PhaseN, &readouts)
+		//startTime := time.Now()
+		//smartpi.ReadPhase(device, config, smartpi.PhaseN, &readouts)
 		// Update readouts and the accumlator.
 		for _, p = range smartpi.MainPhases {
-			smartpi.ReadPhase(device, config, p, &readouts)
+			smartpi.ReadCurrent(device, config, p)
 
 		}
-
+		readouts.Current[1] = smartpi.ReadCurrent(device, config, smartpi.MainPhases[0])
+		readouts.Current[2] = smartpi.ReadCurrent(device, config, smartpi.MainPhases[1])
+		readouts.Current[3] = smartpi.ReadCurrent(device, config, smartpi.MainPhases[2])
 		// Update metrics endpoint.
 		updatePrometheusMetrics(&readouts)
-		publishMQTTReadouts(config, mqttclient, &readouts)
+		//publishMQTTReadouts(config, mqttclient, &readouts)
 
-		delay := time.Since(startTime) - (1000 * time.Millisecond)
-		if int64(delay) > 0 {
-			log.Errorf("Readout delayed: %s", delay)
+		//go sendPost(config, &readouts)
+		/*
+			delay := time.Since(startTime) - (1000 * time.Millisecond)
+			if int64(delay) > 0 {
+				log.Errorf("Readout delayed: %s", delay)
+			}
+		*/
+		now = time.Now()
+		if currentHour != now.Hour() {
+			csvWriter.Flush()
+			currentHour = now.Minute()
+			file, err = os.OpenFile(strings.Join([]string{now.Format("2006-01-02h15"), ".csv"}, ""), os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				log.Fatal(err)
+			}
+			csvWriter = csv.NewWriter(file)
+			csvWriter.Write([]string{"timestamp", "Current #1", "Current #2", "Current #3"})
+		}
+		csvWriter.Write([]string{now.Format("2006-01-02 15:04:05.000"), strconv.FormatFloat(readouts.Current[1], 'E', -1, 64), strconv.FormatFloat(readouts.Current[2], 'E', -1, 64), strconv.FormatFloat(readouts.Current[3], 'E', -1, 64)})
+		if i == 1000 {
+			csvWriter.Flush()
+			i = 0
 		}
 		<-tick
 		i++
@@ -144,6 +178,27 @@ func configWatcher(config *smartpi.Config) {
 	log.Debug("init done 3")
 }
 
+func sendPost(c *smartpi.Config, values *smartpi.ADE7878Readout) {
+	/*t1 := fmt.Sprintf("C1 : %v , C2 : %v , C3 : %v \n", values.Current[1], values.Current[2], values.Current[3])
+	fmt.Println(t1)
+	t2 := fmt.Sprintf("V1 : %v , V2 : %v , V3 : %v \n", values.Voltage[1], values.Voltage[2], values.Voltage[3])
+	fmt.Println(t2)
+	t3 := fmt.Sprintf("AW1 : %v , AW2 : %v , AW3 : %v \n", values.ActiveWatts[1], values.ActiveWatts[2], values.ActiveWatts[3])
+	fmt.Println(t3)
+	fmt.Printf("~~~~~~~~~~~~~~~~~~~~~~~~~~~ \n")*/
+	url := c.Address
+	jsonReadout, _ := json.Marshal(values)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonReadout))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Debug(err)
+		return
+	}
+	defer resp.Body.Close()
+}
 func init() {
 	log.SetFormatter(&log.TextFormatter{})
 	log.SetOutput(os.Stdout)

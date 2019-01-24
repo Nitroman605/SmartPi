@@ -97,6 +97,9 @@ type Config struct {
 	MobilePIN     string
 	MobileUser    string
 	MobilePass    string
+
+	// [http]
+	Address string
 }
 
 var cfg *ini.File
@@ -204,6 +207,9 @@ func (p *Config) ReadParameterFromFile() {
 	p.MobileUser = cfg.Section("umts").Key("umts_username").String()
 	p.MobilePass = cfg.Section("umts").Key("umts_password").String()
 
+	// [http]
+	p.Address = cfg.Section("http").Key("address").String()
+
 }
 
 func (p *Config) SaveParameterToFile() {
@@ -285,6 +291,9 @@ func (p *Config) SaveParameterToFile() {
 	_, err = cfg.Section("umts").NewKey("umts_pin", p.MobilePIN)
 	_, err = cfg.Section("umts").NewKey("umts_username", p.MobileUser)
 	_, err = cfg.Section("umts").NewKey("umts_password", p.MobilePass)
+
+	// [http]
+	_, err = cfg.Section("http").NewKey("address", p.Address)
 
 	tmpFile := "/tmp/smartpi"
 	err := cfg.SaveTo(tmpFile)
