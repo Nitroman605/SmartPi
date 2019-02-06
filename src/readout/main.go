@@ -77,7 +77,7 @@ func makeReadout() (r smartpi.ADE7878Readout) {
 
 func pollSmartPi(config *smartpi.Config, device *i2c.Device) {
 	//var mqttclient MQTT.Client
-	var p smartpi.Phase
+	//var p smartpi.Phase
 
 	/*if config.MQTTenabled {
 		mqttclient = newMQTTClient(config)
@@ -106,10 +106,10 @@ func pollSmartPi(config *smartpi.Config, device *i2c.Device) {
 		//startTime := time.Now()
 		//smartpi.ReadPhase(device, config, smartpi.PhaseN, &readouts)
 		// Update readouts and the accumlator.
-		for _, p = range smartpi.MainPhases {
+		/*for _, p = range smartpi.MainPhases {
 			smartpi.ReadCurrent(device, config, p)
 
-		}
+		}*/
 		readouts.Current[1] = smartpi.ReadCurrent(device, config, smartpi.MainPhases[0])
 		readouts.Current[2] = smartpi.ReadCurrent(device, config, smartpi.MainPhases[1])
 		readouts.Current[3] = smartpi.ReadCurrent(device, config, smartpi.MainPhases[2])
